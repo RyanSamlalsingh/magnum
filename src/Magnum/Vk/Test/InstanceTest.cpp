@@ -49,7 +49,10 @@ InstanceTest::InstanceTest() {
 }
 
 void InstanceTest::createInfoConstructNoInit() {
-    InstanceCreateInfo info;
+    /* Use NoImplicitExtensions to avoid internal state being allocated --
+       otherwise it'd leak on the placement new */
+    InstanceCreateInfo info{InstanceCreateInfo::Flag::NoImplicitExtensions};
+
     info->sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
     new(&info) InstanceCreateInfo{NoInit};
     CORRADE_COMPARE(info->sType, VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2);
