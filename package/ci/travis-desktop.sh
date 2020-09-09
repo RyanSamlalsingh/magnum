@@ -17,14 +17,20 @@ cmake .. \
 ninja install
 cd ../..
 
+# Enabling both GL and Vulkan but not running rendering tests for either --
+# that's done by separate GLES and Vulkan jobs. For GL it's because there's no
+# way to test desktop GL on SwiftShader, for Vulkan it's because SwiftShader
+# doesn't compile on GCC 4.8 and we *need* to compile on that, so we need two
+# jobs to verify both compilation and rendering.
+#
+# Not using CXXFLAGS in order to avoid affecting dependencies.
 mkdir build && cd build
-# Not using CXXFLAGS in order to avoid affecting dependencies
 cmake .. \
     -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
     -DCMAKE_INSTALL_PREFIX=$HOME/deps \
     -DCMAKE_BUILD_TYPE=$CONFIGURATION \
     -DWITH_AUDIO=ON \
-    -DWITH_VK=OFF \
+    -DWITH_VK=ON \
     -DWITH_GLFWAPPLICATION=ON \
     -DWITH_SDL2APPLICATION=ON \
     -DWITH_WINDOWLESS${PLATFORM_GL_API}APPLICATION=ON \
@@ -46,16 +52,18 @@ cmake .. \
     -DWITH_IMAGECONVERTER=ON \
     -DWITH_SCENECONVERTER=ON \
     -DWITH_GL_INFO=ON \
+    -DWITH_VK_INFO=ON \
     -DWITH_AL_INFO=ON \
     -DBUILD_TESTS=ON \
     -DBUILD_GL_TESTS=ON \
+    -DBUILD_VK_TESTS=ON \
     -DBUILD_DEPRECATED=$BUILD_DEPRECATED \
     -DBUILD_STATIC=$BUILD_STATIC \
     -DBUILD_PLUGINS_STATIC=$BUILD_STATIC \
     -G Ninja
 # Otherwise the job gets killed (probably because using too much memory)
 ninja -j4
-ASAN_OPTIONS="color=always" LSAN_OPTIONS="color=always suppressions=$TRAVIS_BUILD_DIR/package/ci/leaksanitizer.conf" TSAN_OPTIONS="color=always" CORRADE_TEST_COLOR=ON ctest -V -E GLTest
+ASAN_OPTIONS="color=always" LSAN_OPTIONS="color=always suppressions=$TRAVIS_BUILD_DIR/package/ci/leaksanitizer.conf" TSAN_OPTIONS="color=always" CORRADE_TEST_COLOR=ON ctest -V -E "(GL|Vk)Test"
 
 # Test install, after running the tests as for them it shouldn't be needed
 ninja install
