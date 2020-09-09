@@ -167,6 +167,17 @@ matrix:
     - CONFIGURATION=Debug
   - language: cpp
     os: osx
+    # SwiftShader is built on 10.15 and can't be used on older versions due to
+    # dyld: lazy symbol binding failed: Symbol not found: ____chkstk_darwin
+    osx_image: xcode11.6
+    compiler: clang
+    env:
+    - JOBID=macos-vulkan
+    - TARGET=desktop-vulkan
+    - CMAKE_CXX_FLAGS="--coverage"
+    - CONFIGURATION=Debug
+  - language: cpp
+    os: osx
     osx_image: xcode7.3
     env:
     - JOBID=ios-gles2
@@ -295,12 +306,17 @@ install:
 # so this is an opportunity to test both)
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "desktop" ]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install molten-vk; fi
 
+# SwiftShader on Mac, also self-hosted from GH Actions. We also need Vulkan
+# loader there.
+- if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "desktop-vulkan" ] && [ ! -e "$HOME/swiftshader/lib/libvk_swiftshader.dylib" ]; then cd $HOME ; wget https://ci.magnum.graphics/swiftshader-r5464.a6940c8e6e-macos-10.15.zip && mkdir -p swiftshader && cd swiftshader && unzip ../swiftshader-r5464.a6940c8e6e-macos-10.15.zip && cd $TRAVIS_BUILD_DIR ; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "desktop-vulkan" ] && [ ! -e "$HOME/vulkan-loader/lib/libvulkan.dylib" ]; then cd $HOME ; wget https://ci.magnum.graphics/vulkan-loader-1.2.153-macos-10.15.zip && mkdir -p vulkan-loader && cd vulkan-loader && unzip ../vulkan-loader-1.2.153-macos-10.15.zip && cd $TRAVIS_BUILD_DIR ; fi
+
 script:
 - if [ "$TRAVIS_OS_NAME" == "linux" ] && ( [ "$TARGET" == "desktop" ] || [ "$TARGET" == "desktop-sanitizers" ] ); then ./package/ci/travis-desktop.sh; fi
 # Vulkan needs to be in a separate build, because it needs new CMake (for the
 # Find module) and in the future also C++14. Unfortunately that means we can't
 # apply the sanitizer or non-deprecated build on it.
-- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop-vulkan" ]; then ./package/ci/travis-desktop-vulkan.sh; fi
+- if [ "$TARGET" == "desktop-vulkan" ]; then ./package/ci/travis-desktop-vulkan.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop-gles" ]; then ./package/ci/travis-desktop-gles.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "android" ]; then ./package/ci/travis-android-arm.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "desktop" ]; then ./package/ci/travis-desktop.sh; fi

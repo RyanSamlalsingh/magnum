@@ -19,9 +19,12 @@ cd ../..
 
 # Enabling both GL and Vulkan but not running rendering tests for either --
 # that's done by separate GLES and Vulkan jobs. For GL it's because there's no
-# way to test desktop GL on SwiftShader, for Vulkan it's because SwiftShader
-# doesn't compile on GCC 4.8 and we *need* to compile on that, so we need two
-# jobs to verify both compilation and rendering.
+# way to test desktop GL on SwiftShader, for Vulkan it's because:
+# -  SwiftShader doesn't compile on GCC 4.8 and we *need* to test compile on
+#    that,
+# -  SwiftShader for macOS is built on 10.15 and we want to test on older
+#    versions as well
+# so we need two jobs to verify both compilation and rendering.
 #
 # Not using CXXFLAGS in order to avoid affecting dependencies.
 mkdir build && cd build
