@@ -86,6 +86,7 @@
 #  GlxContext                   - GLX context
 #  WglContext                   - WGL context
 #  OpenGLTester                 - OpenGLTester class
+#  VulkanTester                 - VulkanTester class
 #  MagnumFont                   - Magnum bitmap font plugin
 #  MagnumFontConverter          - Magnum bitmap font converter plugin
 #  ObjImporter                  - OBJ importer plugin
@@ -368,7 +369,7 @@ set(_MAGNUM_LIBRARY_COMPONENT_LIST
     WindowlessEglApplication WindowlessGlxApplication WindowlessIosApplication
     WindowlessWglApplication WindowlessWindowsEglApplication
     CglContext EglContext GlxContext WglContext
-    OpenGLTester)
+    OpenGLTester VulkanTester)
 set(_MAGNUM_PLUGIN_COMPONENT_LIST
     AnyAudioImporter AnyImageConverter AnyImageImporter AnySceneConverter
     AnySceneImporter MagnumFont MagnumFontConverter ObjImporter
@@ -440,6 +441,7 @@ if(MAGNUM_TARGET_GL)
 endif()
 
 set(_MAGNUM_Trade_DEPENDENCIES )
+set(_MAGNUM_VulkanTester_DEPENDENCIES Vk)
 set(_MAGNUM_AndroidApplication_DEPENDENCIES GL)
 set(_MAGNUM_EmscriptenApplication_DEPENDENCIES)
 if(MAGNUM_TARGET_GL)
@@ -868,6 +870,10 @@ foreach(_component ${Magnum_FIND_COMPONENTS})
         # OpenGLTester library
         elseif(_component STREQUAL OpenGLTester)
             set(_MAGNUM_${_COMPONENT}_INCLUDE_PATH_SUFFIX Magnum/GL)
+
+        # VulkanTester library
+        elseif(_component STREQUAL VulkanTester)
+            set(_MAGNUM_${_COMPONENT}_INCLUDE_PATH_SUFFIX Magnum/Vk)
 
         # Primitives library
         elseif(_component STREQUAL Primitives)
