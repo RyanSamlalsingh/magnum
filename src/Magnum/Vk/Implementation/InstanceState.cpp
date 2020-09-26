@@ -35,12 +35,15 @@ InstanceState::InstanceState(Instance& instance, Int argc, const char** argv): a
     if(instance.isVersionSupported(Version::Vk11)) {
         getPhysicalDevicePropertiesImplementation = &DeviceProperties::getPropertiesImplementationVulkan11;
         getPhysicalDeviceQueueFamilyProperties = &DeviceProperties::getQueueFamilyPropertiesImplementationVulkan11;
+        getPhysicalDeviceMemoryProperties = &DeviceProperties::getMemoryPropertiesImplementationVulkan11;
     } else if(instance.isExtensionEnabled<Extensions::KHR::get_physical_device_properties2>()) {
         getPhysicalDevicePropertiesImplementation = &DeviceProperties::getPropertiesImplementationKHR;
         getPhysicalDeviceQueueFamilyProperties = &DeviceProperties::getQueueFamilyPropertiesImplementationKHR;
+        getPhysicalDeviceMemoryProperties = &DeviceProperties::getMemoryPropertiesImplementationKHR;
     } else {
         getPhysicalDevicePropertiesImplementation = DeviceProperties::getPropertiesImplementationDefault;
         getPhysicalDeviceQueueFamilyProperties = &DeviceProperties::getQueueFamilyPropertiesImplementationDefault;
+        getPhysicalDeviceMemoryProperties = &DeviceProperties::getMemoryPropertiesImplementationDefault;
     }
 }
 
