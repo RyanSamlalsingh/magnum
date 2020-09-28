@@ -34,13 +34,68 @@ namespace Magnum { namespace Vk { namespace Test { namespace {
 struct MemoryTest: TestSuite::Tester {
     explicit MemoryTest();
 
+    void allocateInfoConstruct();
+    void allocateInfoConstructNoInit();
+    void allocateInfoConstructFromVk();
+
+    void constructNoCreate();
+    void constructCopy();
+
     void debugMemoryFlag();
     void debugMemoryFlags();
 };
 
 MemoryTest::MemoryTest() {
-    addTests({&MemoryTest::debugMemoryFlag,
+    addTests({&MemoryTest::allocateInfoConstruct,
+              &MemoryTest::allocateInfoConstructNoInit,
+              &MemoryTest::allocateInfoConstructFromVk,
+
+              &MemoryTest::constructNoCreate,
+              &MemoryTest::constructCopy,
+
+              &MemoryTest::debugMemoryFlag,
               &MemoryTest::debugMemoryFlags});
+}
+
+void MemoryTest::allocateInfoConstruct() {
+    MemoryAllocateInfo info{65536, 1};
+    CORRADE_COMPARE(info->allocationSize, 65536);
+    CORRADE_COMPARE(info->memoryTypeIndex, 1);
+}
+
+void MemoryTest::allocateInfoConstructNoInit() {
+    MemoryAllocateInfo info{NoInit};
+    info->sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
+    new(&info) MemoryAllocateInfo{NoInit};
+    CORRADE_COMPARE(info->sType, VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2);
+
+    CORRADE_VERIFY((std::is_nothrow_constructible<MemoryAllocateInfo, NoInitT>::value));
+
+    /* Implicit construction is not allowed */
+    CORRADE_VERIFY(!(std::is_convertible<NoInitT, MemoryAllocateInfo>::value));
+}
+
+void MemoryTest::allocateInfoConstructFromVk() {
+    VkMemoryAllocateInfo vkInfo;
+    vkInfo.sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
+
+    MemoryAllocateInfo info{vkInfo};
+    CORRADE_COMPARE(info->sType, VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2);
+}
+
+void MemoryTest::constructNoCreate() {
+    {
+        Memory memory{NoCreate};
+        CORRADE_VERIFY(!memory.handle());
+    }
+
+    /* Implicit construction is not allowed */
+    CORRADE_VERIFY(!(std::is_convertible<NoCreateT, Memory>::value));
+}
+
+void MemoryTest::constructCopy() {
+    CORRADE_VERIFY(!(std::is_constructible<Memory, const Memory&>{}));
+    CORRADE_VERIFY(!(std::is_assignable<Memory, const Memory&>{}));
 }
 
 void MemoryTest::debugMemoryFlag() {
