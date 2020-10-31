@@ -431,7 +431,7 @@ class MAGNUM_SHADERS_EXPORT Phong: public GL::AbstractShaderProgram {
          * @param flags         Flags
          * @param lightCount    Count of light sources
          */
-        explicit Phong(Flags flags = {}, UnsignedInt lightCount = 1);
+        explicit Phong(Flags flags = {}, UnsignedInt lightCount = 1, bool foveationDistortion = false);
 
         /**
          * @brief Construct without creating the underlying OpenGL object

@@ -154,6 +154,123 @@ out highp vec3 lightDirections[LIGHT_COUNT];
 out highp vec3 cameraDirection;
 #endif
 
+const float distortionData[61] = float[61](
+  0,
+  0.086897,
+  0.14259,
+  0.18551,
+  0.22175,
+  0.25425,
+  0.28422,
+  0.31204,
+  0.33808,
+  0.3627,
+  0.38626,
+  0.40901,
+  0.43098,
+  0.4522,
+  0.4727,
+  0.4925,
+  0.51164,
+  0.53013,
+  0.54802,
+  0.56533,
+  0.58208,
+  0.59833,
+  0.6141,
+  0.62941,
+  0.64431,
+  0.65883,
+  0.67297,
+  0.68674,
+  0.70016,
+  0.71323,
+  0.72596,
+  0.73837,
+  0.75046,
+  0.76224,
+  0.77373,
+  0.78493,
+  0.79585,
+  0.8065,
+  0.8169,
+  0.82706,
+  0.83698,
+  0.84669,
+  0.85618,
+  0.86548,
+  0.87459,
+  0.88352,
+  0.89228,
+  0.90087,
+  0.9093,
+  0.91758,
+  0.92571,
+  0.93369,
+  0.94153,
+  0.94924,
+  0.95683,
+  0.96429,
+  0.97164,
+  0.97888,
+  0.98601,
+  0.99305,
+  1
+);
+
+float distortionF(float x)
+{
+  // float x2 = x * x;
+  // float x3 = x2 * x;
+  // float x4 = x3 * x;
+  // float x5 = x4 * x;
+  // float x6 = x5 * x;
+
+  // return 
+  //   - 27.301 * x6
+  //   + 88.820 * x5
+  //   - 113.06 * x4
+  //   + 72.191 * x3
+  //   - 25.494 * x2
+  //   + 5.8367 * x + 0.1;
+
+  float angleInDegrees = degrees(atan(x * tan(radians(60.0f))));
+  return mix(
+    distortionData[uint(floor(angleInDegrees))],
+    distortionData[uint(floor(angleInDegrees)) + 1U],
+    fract(angleInDegrees));
+}
+
+vec4 Distort(vec4 p)
+{
+    vec2 v = p.xy / p.w;
+    // Convert to polar coords:
+    float radius = clamp(length(v), 0.0f, 1.0f);
+
+    if (radius <=1)
+    {
+      float theta = atan(v.y,v.x);
+      
+      // Distort:
+      //radius = pow(radius, 0.5);
+      radius = distortionF(radius);
+
+      // Convert back to Cartesian:
+      v.x = radius * cos(theta);
+      v.y = radius * sin(theta);
+      p.xy = v.xy;
+      p.xy *= p.w;
+      // p.z /= p.w;
+      // p.w = 1;
+    }
+    else
+    {
+      p.x /= 0.0f;
+    }
+
+    return p;
+}
+
 void main() {
     /* Transformed vertex position */
     highp vec4 transformedPosition4 = transformationMatrix*
@@ -188,6 +305,10 @@ void main() {
 
     /* Transform the position */
     gl_Position = projectionMatrix*transformedPosition4;
+
+    #ifdef FOVEATION_DISTORTION
+    gl_Position = Distort(gl_Position);
+    #endif
 
     #ifdef TEXTURED
     /* Texture coordinates, if needed */
